@@ -10945,6 +10945,16 @@ lock_fail:
 			if (fts_exist) {
 				purge_sys.resume_FTS();
 			}
+
+			/* Deadlock encountered and rollbacked the
+			transaction. So restart the transaction
+			to remove the newly created table or
+			index from data dictionary and table cache
+			in rollback_inplace_alter_table() */
+			if (trx->state == TRX_STATE_NOT_STARTED) {
+				trx_start_for_ddl(trx);
+			}
+
 			DBUG_RETURN(true);
 		} else if ((ctx->new_table->flags2
 			    & (DICT_TF2_FTS_HAS_DOC_ID | DICT_TF2_FTS))
