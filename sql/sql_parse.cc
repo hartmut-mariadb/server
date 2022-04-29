@@ -4650,7 +4650,7 @@ mysql_execute_command(THD *thd)
         Send something semi-generic here since we don't know which
         assignment in the list caused the error.
       */
-      if (!thd->is_error() && !thd->slave_thread)
+      if (!thd->is_error())
         my_error(ER_WRONG_ARGUMENTS,MYF(0),"SET");
       goto error;
     }

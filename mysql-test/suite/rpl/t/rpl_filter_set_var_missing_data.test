@@ -36,6 +36,11 @@ GRANT journalist to testuser@localhost;
 --echo #
 --echo # Execute SET DEFAULT ROLE which uses the previous user/role data
 SET DEFAULT ROLE journalist for testuser@localhost;
+
+# TODO: Complete the `SET PASSWORD` test; this is only to show that the slave
+# doesn't error, I will additionally add validation in the final patch.
+SET PASSWORD for testuser@localhost= PASSWORD('123');
+
 --source include/save_master_gtid.inc
 
 --echo #

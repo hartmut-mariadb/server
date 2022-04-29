@@ -3579,9 +3579,25 @@ int acl_check_set_default_role(THD *thd, const char *host, const char *user,
 {
   DBUG_ENTER("acl_check_set_default_role");
 #ifdef HAVE_REPLICATION
-  Grant_tables tables(Table_user | Table_roles_mapping, TL_WRITE);
+  Grant_tables tables(Table_roles_mapping, TL_WRITE);
   if (int ignore_ret= tables.rpl_ignore_tables(thd))
+  {
+    /*
+      If mysql.roles_mapping is ignored by the replication filter, we return
+      non-zero so the calling function knows not to continue. Internally, we
+      add a stmt_da note so the calling function can trace that this non-zero
+      return is not an error.
+
+      Note that thd->raise_note will discard the note if OPTION_SQL_NOTES is
+      not set in variables.option_bits, so we temporarily set it to ensure that
+      the note is preserved.
+    */
+    ulonglong option_bits_save= thd->variables.option_bits;
+    thd->variables.option_bits |= OPTION_SQL_NOTES;
+    thd->raise_note(ER_SLAVE_IGNORED_TABLE);
+    thd->variables.option_bits= option_bits_save;
     DBUG_RETURN(ignore_ret);
+  }
 #endif
   DBUG_RETURN(check_alter_user(thd, host, user) ||
               check_user_can_set_role(thd, user, host, NULL, role, NULL));

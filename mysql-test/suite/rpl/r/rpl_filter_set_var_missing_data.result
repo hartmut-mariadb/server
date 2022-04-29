@@ -16,6 +16,7 @@ GRANT journalist to testuser@localhost;
 #
 # Execute SET DEFAULT ROLE which uses the previous user/role data
 SET DEFAULT ROLE journalist for testuser@localhost;
+SET PASSWORD for testuser@localhost= PASSWORD('123');
 include/save_master_gtid.inc
 #
 # Verify primary's grant tables have the correct user/role data

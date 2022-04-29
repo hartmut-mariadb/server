@@ -729,7 +729,20 @@ int sql_set_variables(THD *thd, List<set_var_base> *var_list, bool free)
   while ((var=it++))
   {
     if ((error= var->check(thd)))
+    {
+      /*
+        If the check failed because the SET command targets a table that the
+        slave ignores, then this isn't an error, but we still want to exit
+        early (i.e. we don't want to run `update`).
+      */
+      Diagnostics_area::Sql_condition_iterator err_it=
+          thd->get_stmt_da()->sql_conditions();
+      const Sql_condition *err;
+      while ((err= err_it++))
+        if (err->get_sql_errno() == ER_SLAVE_IGNORED_TABLE)
+          error= 0;
       goto err;
+    }
   }
   if (was_error || !(error= MY_TEST(thd->is_error())))
   {
